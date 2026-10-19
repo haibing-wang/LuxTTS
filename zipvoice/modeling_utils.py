@@ -42,13 +42,34 @@ class LuxTTSConfig:
     tokenizer: str = "emilia"  # choices: ["emilia", "libritts", "espeak", "simple"]
     lang: str = "en-us"
 
+    # Runtime attributes
+    device: Optional[torch.device] = None
+    sampling_rate: Optional[int] = None
+    seed: Optional[int] = None
+    onnx_int8: Optional[bool] = None
 
-@torch.inference_mode
-def process_audio(audio, transcriber, tokenizer, feature_extractor, device, target_rms=0.1, duration=4, feat_scale=0.1):
+
+@torch.inference_mode()
+def process_audio(audio, transcriber, tokenizer, feature_extractor, device, target_rms=0.1, duration=4, feat_scale=0.1, prompt_text=None, language=None):
     prompt_wav, sr = librosa.load(audio, sr=24000, duration=duration)
     prompt_wav2, sr = librosa.load(audio, sr=16000, duration=duration)
-    prompt_text = transcriber(prompt_wav2)["text"]
-    print(prompt_text)
+
+    if prompt_text is not None and prompt_text.strip():
+        print(f"Using provided prompt text: {prompt_text}")
+    else:
+        gen_kwargs = {"task": "transcribe"}
+        if language is not None:
+            gen_kwargs["language"] = language
+        
+        prompt_text = transcriber(prompt_wav2, generate_kwargs=gen_kwargs)["text"].strip()
+        
+        # 如果自动转录未提取到任何有效 token，且未强制指定语言，尝试使用英文重试
+        test_tokens = tokenizer.texts_to_token_ids([prompt_text])
+        if (not test_tokens or len(test_tokens[0]) == 0) and language is None:
+            logging.info("Initial ASR produced no English/Chinese tokens, retrying with language='en'...")
+            prompt_text = transcriber(prompt_wav2, generate_kwargs={"language": "en", "task": "transcribe"})["text"].strip()
+
+        print(f"Transcribed prompt text: {prompt_text}")
 
     prompt_wav = torch.from_numpy(prompt_wav).unsqueeze(0)
     prompt_wav, prompt_rms = rms_norm(prompt_wav, target_rms)
@@ -59,6 +80,14 @@ def process_audio(audio, transcriber, tokenizer, feature_extractor, device, targ
     prompt_features = prompt_features.unsqueeze(0) * feat_scale
     prompt_features_lens = torch.tensor([prompt_features.size(1)], device=device)
     prompt_tokens = tokenizer.texts_to_token_ids([prompt_text])
+
+    if not prompt_tokens or len(prompt_tokens[0]) == 0:
+        raise ValueError(
+            f"No valid English or Chinese tokens could be extracted from prompt text: '{prompt_text}'. "
+            "LuxTTS requires an English or Chinese reference audio. "
+            "Please provide a clear English/Chinese audio or pass `prompt_text` / `language` to `encode_prompt()`."
+        )
+
     return prompt_tokens, prompt_features_lens, prompt_features, prompt_rms
 
 def generate(prompt_tokens, prompt_features_lens, prompt_features, prompt_rms, text, model, vocoder, tokenizer, num_step=4, guidance_scale=3.0, speed=1.0, t_shift=0.5, target_rms=0.1):
@@ -110,7 +139,7 @@ def load_models_gpu(model_path=None, device="cuda"):
         **model_config["model"],
         **tokenizer_config,
     )
-    load_checkpoint(filename=model_ckpt, model=model, strict=True)
+    load_checkpoint(filename=Path(model_ckpt), model=model, strict=True)
     params.device = torch.device(device, 0)
 
     model = model.to(params.device).eval()
