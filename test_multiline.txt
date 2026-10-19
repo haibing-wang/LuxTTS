@@ -1,0 +1,6 @@
+Welcome to the LuxTTS command line interface.
+This demonstrates the multi-line batch voice cloning feature.
+Each sentence is synthesized and merged seamlessly with accurate timestamps.
+欢迎使用 LuxTTS 命令行多行文本合成功能。
+这是一段中文语音测试，支持按行分段并精确计算时间轴。
+祝您使用愉快！

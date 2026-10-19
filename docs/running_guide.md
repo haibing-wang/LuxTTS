@@ -126,9 +126,51 @@ lux_tts = LuxTTS('YatharthS/LuxTTS', device='cpu', threads=4)
 
 ---
 
-## 4. 完整运行代码示例
+## 4. 运行方式与命令行入口
 
-### 4.1 极简推理脚本 ([main.py](../main.py))
+### 4.1 CLI 命令行入口 ([main.py](../main.py))
+
+项目提供功能完善的命令行入口工具，支持**单文本合成**与**多行文本分段合成+自动合并+时间戳 JSON 导出**：
+
+#### 场景 1：单行文本合成
+```bash
+python main.py -a audio_file.wav -t "Hello world, this is LuxTTS!" -o output.wav
+```
+
+#### 场景 2：多行文本文件合成（按换行分段，自动拼接并输出时间轴）
+```bash
+python main.py -a audio_file.wav -f script.txt -o merged.wav --time_json timestamps.json
+```
+- **参数说明**：
+  - `-a`, `--prompt_audio`：参考音频文件路径（必需）；
+  - `-f`, `--text_file`：待合成的多行文本文件；
+  - `-o`, `--output`：输出的整段合并音频文件；
+  - `--time_json`：时间戳 JSON 输出路径（默认自动为 `<output>_timestamps.json`）；
+  - `--pause`：各行之间的停顿静音间隔（秒，默认 0.3s）；
+  - `-l`, `--language`：参考音频语言提示（`en` 或 `zh`），防止 Whisper 语种检测漂移；
+  - `--prompt_text`：参考音频的文本内容（若提供则直接跳过 Whisper，极速合成）。
+
+#### 导出的时间戳 JSON 格式示例：
+```json
+{
+  "1": {
+    "time": "00:00.00 - 00:04.66",
+    "start_seconds": 0.0,
+    "end_seconds": 4.66,
+    "duration_seconds": 4.66,
+    "text": "Welcome to the LuxTTS command line interface."
+  },
+  "2": {
+    "time": "00:04.96 - 00:10.20",
+    "start_seconds": 4.96,
+    "end_seconds": 10.2,
+    "duration_seconds": 5.24,
+    "text": "This demonstrates the multi-line batch voice cloning feature."
+  }
+}
+```
+
+### 4.2 Python 代码极简调用 ([demo.py](../demo.py))
 
 ```python
 from zipvoice.luxvoice import LuxTTS

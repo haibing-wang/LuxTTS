@@ -1,0 +1,44 @@
+{
+  "1": {
+    "time": "00:00.00 - 00:04.66",
+    "start_seconds": 0.0,
+    "end_seconds": 4.66,
+    "duration_seconds": 4.66,
+    "text": "Welcome to the LuxTTS command line interface."
+  },
+  "2": {
+    "time": "00:04.96 - 00:10.20",
+    "start_seconds": 4.96,
+    "end_seconds": 10.2,
+    "duration_seconds": 5.24,
+    "text": "This demonstrates the multi-line batch voice cloning feature."
+  },
+  "3": {
+    "time": "00:10.50 - 00:16.96",
+    "start_seconds": 10.5,
+    "end_seconds": 16.96,
+    "duration_seconds": 6.46,
+    "text": "Each sentence is synthesized and merged seamlessly with accurate timestamps."
+  },
+  "4": {
+    "time": "00:17.26 - 00:21.27",
+    "start_seconds": 17.26,
+    "end_seconds": 21.27,
+    "duration_seconds": 4.01,
+    "text": "欢迎使用 LuxTTS 命令行多行文本合成功能。"
+  },
+  "5": {
+    "time": "00:21.57 - 00:25.58",
+    "start_seconds": 21.57,
+    "end_seconds": 25.58,
+    "duration_seconds": 4.01,
+    "text": "这是一段中文语音测试，支持按行分段并精确计算时间轴。"
+  },
+  "6": {
+    "time": "00:25.88 - 00:26.94",
+    "start_seconds": 25.88,
+    "end_seconds": 26.94,
+    "duration_seconds": 1.06,
+    "text": "祝您使用愉快！"
+  }
+}
